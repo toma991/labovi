@@ -1,0 +1,297 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Person {
+    char first_name[50];
+    char last_name[50];
+    int birth_year;
+    struct Person* next;
+} Person;
+
+Person* addToBeginning(Person* head) {
+    Person *newPerson = (Person *)malloc(sizeof(Person));
+    if (!newPerson) {
+        perror("Memory allocation failed.");
+        exit(1);
+}
+ printf("Enter last name: ");
+    if (scanf_s("%s", newPerson->last_name, sizeof(newPerson->last_name)) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+    printf("Enter birth year: ");
+    if (scanf_s("%d", &newPerson->birth_year) != 1) {
+        perror("Input error.");
+        exit(1);
+    }  newPerson->next = head;
+    return newPerson;
+}
+
+void printList(Person* head) {
+ Person *current = head;
+    while (current) {
+        printf("First Name: %s, Last Name: %s, Birth Year: %d\n", current->first_name, current->last_name, current->birth_year);
+        current = current->next;
+    }  
+}
+
+Person* addToEnd(Person* head) {
+
+}
+
+Person* addAfter(Person* head, Person* target) {
+    Person* newPerson = (Person*)malloc(sizeof(Person));
+    if (!newPerson) {
+        perror("Memory allocation failed.");
+        exit(1);
+    }
+
+    printf("Enter first name: ");
+    if (scanf_s("%s", newPerson->first_name, sizeof(newPerson->first_name)) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+    printf("Enter last name: ");
+    if (scanf_s("%s", newPerson->last_name, sizeof(newPerson->last_name)) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+    printf("Enter birth year: ");
+    if (scanf_s("%d", &newPerson->birth_year) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+
+    newPerson->next = NULL;
+
+    if (!head) {
+        return newPerson;
+    }
+
+    if (target == NULL) {
+        perror("Target person not found.");
+        free(newPerson);
+        return head;
+    }
+
+    newPerson->next = target->next;
+    target->next = newPerson;
+
+    return head;
+}
+
+Person* addBefore(Person* head, Person* target) {
+    Person* newPerson = (Person*)malloc(sizeof(Person));
+    if (!newPerson) {
+        perror("Memory allocation failed.");
+        exit(1);
+    }
+
+    printf("Enter first name: ");
+    if (scanf_s("%s", newPerson->first_name, sizeof(newPerson->first_name)) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+    printf("Enter last name: ");
+    if (scanf_s("%s", newPerson->last_name, sizeof(newPerson->last_name)) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+    printf("Enter birth year: ");
+    if (scanf_s("%d", &newPerson->birth_year) != 1) {
+        perror("Input error.");
+        exit(1);
+    }
+
+    newPerson->next = NULL;
+
+    if (!head) {
+        return newPerson;
+    }
+
+    if (target == NULL) {
+        perror("Target person not found.");
+        free(newPerson);
+        return head;
+    }
+
+    if (head == target) {
+        newPerson->next = head;
+        return newPerson;
+    }
+
+    Person* current = head;
+    while (current->next != target) {
+        current = current->next;
+    }
+
+    newPerson->next = target;
+    current->next = newPerson;
+
+    return head;
+}
+
+Person* sortList(Person* head) {
+}
+
+void writeToFile(Person* head, const char* filename) {
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("File opening failed.");
+        return;
+    }
+
+    Person* current = head;
+    while (current) {
+        fprintf(file, "%s %s %d\n", current->first_name, current->last_name, current->birth_year);
+        current = current->next;
+    }
+
+    fclose(file);
+}
+
+Person* readFromFile(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("File opening failed.");
+        return NULL;
+    }
+
+    Person* head = NULL;
+    char first_name[50], last_name[50];
+    int birth_year;
+
+    while (fscanf(file, "%s %s %d", first_name, last_name, &birth_year) == 3) {
+        Person* newPerson = (Person*)malloc(sizeof(Person));
+        if (!newPerson) {
+            perror("Memory allocation failed.");
+            exit(1);
+        }
+
+        strcpy(newPerson->first_name, first_name);
+        strcpy(newPerson->last_name, last_name);
+        newPerson->birth_year = birth_year;
+        newPerson->next = head;
+        head = newPerson;
+    }
+
+    fclose(file);
+    return head;
+}
+
+int main() {
+    Person* head = NULL;
+    int choice;
+
+    while (1) {
+        printf("Choose an option:\n");
+        printf("1. Add a person to the beginning of the list\n");
+        printf("2. Print the list\n");
+        printf("3. Add a person to the end of the list\n");
+        printf("4. Add a person after a specific person\n");
+        printf("5. Add a person before a specific person\n");
+        printf("6. Sort the list by last name\n");
+        printf("7. Write the list to a file\n");
+        printf("8. Read the list from a file\n");
+        printf("9. Exit\n");
+
+        if (scanf_s("%d", &choice) != 1) {
+            perror("Input error.");
+            exit(1);
+        }
+
+        switch (choice) {
+            case 1:
+                head = addToBeginning(head);
+                break;
+            case 2:
+                printList(head);
+                break;
+            case 3:
+                head = addToEnd(head);
+                break;
+            case 4: {
+                int targetIndex;
+                printf("Enter the index of the person after which you want to add: ");
+                if (scanf_s("%d", &targetIndex) != 1) {
+                    perror("Input error.");
+                    exit(1);
+                }
+                Person* current = head;
+                for (int i = 0; i < targetIndex && current != NULL; i++) {
+                    current = current->next;
+                }
+                head = addAfter(head, current);
+                break;
+            }
+            case 5: {
+                int targetIndex;
+                printf("Enter the index of the person before which you want to add: ");
+                if (scanf_s("%d", &targetIndex) != 1) {
+                    perror("Input error.");
+                    exit(1);
+                }
+                if (targetIndex == 0) {
+                    head = addBefore(head, NULL);
+                } else {
+                    Person* current = head;
+                    for (int i = 0; i < targetIndex - 1 && current != NULL; i++) {
+                        current = current->next;
+                    }
+                    if (current) {
+                        head = addBefore(head, current);
+                    } else {
+                        printf("Invalid index.\n");
+                    }
+                }
+                break;
+            }
+            case 6:
+                head = sortList(head);
+                break;
+            case 7: {
+                char filename[100];
+                printf("Enter the filename to write to: ");
+                if (scanf_s("%s", filename, sizeof(filename)) != 1) {
+                    perror("Input error.");
+                    exit(1);
+                }
+                writeToFile(head, filename);
+                break;
+            }
+            case 8: {
+                char filename[100];
+                printf("Enter the filename to read from: ");
+                if (scanf_s("%s", filename, sizeof(filename)) != 1) {
+                    perror("Input error.");
+                    exit(1);
+                }
+                Person* newHead = readFromFile(filename);
+                if (newHead) {
+                    
+                    while (head != NULL) {
+                        Person* temp = head;
+                        head = head->next;
+                        free(temp);
+                    }
+                    head = newHead;
+                }
+                break;
+            }
+            case 9:
+                
+                while (head != NULL) {
+                    Person* temp = head;
+                    head = head->next;
+                    free(temp);
+                }
+                return 0;
+            default:
+                printf("Invalid option. Please enter again.\n");
+        }
+    }
+
+    return 0;
+}
