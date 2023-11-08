@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Term {
+    double coefficient;
+    int exponent;
+    struct Term* next;
+} Term;
+
+Term* createTerm(double coefficient, int exponent) {
+    Term* term = (Term*)malloc(sizeof(Term));
+    term->coefficient = coefficient;
+    term->exponent = exponent;
+    term->next = NULL;
+    return term;
+}
+
+Term* readPolynomialFromFile(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    Term* head = NULL;
+    Term* tail = NULL;
+    double coefficient;
+    int exponent;
+
+    while (fscanf(file, "%lf %d", &coefficient, &exponent) != EOF) {
+        Term* term = createTerm(coefficient, exponent);
+        if (head == NULL) {
+            head = term;
+            tail = term;
+        } else {
+            tail->next = term;
+            tail = term;
+        }
+    }
+
+    fclose(file);
+    return head;
+}
+
+void printPolynomial(Term* polynomial) {
+    Term* current = polynomial;
+    while (current != NULL) {
+        printf("%.2fx^%d ", current->coefficient, current->exponent);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+Term* addPolynomials(Term* poly1, Term* poly2) {
+    Term* result = NULL;
+    Term* current1 = poly1;
+    Term* current2 = poly2;
+
+    while (current1 != NULL || current2 != NULL) {
+        if (current1 == NULL) {
+            Term* term = createTerm(current2->coefficient, current2->exponent);
+            current2 = current2->next;
+            term->next = result;
+            result = term;
+        } else if (current2 == NULL) {
+            Term* term = createTerm(current1->coefficient, current1->exponent);
+            current1 = current1->next;
+            term->next = result;
+            result = term;
+        } else if (current1->exponent < current2->exponent) {
+            Term* term = createTerm(current2->coefficient, current2->exponent);
+            current2 = current2->next;
+            term->next = result;
+            result = term;
+        } else if (current1->exponent > current2->exponent) {
+            Term* term = createTerm(current1->coefficient, current1->exponent);
+            current1 = current1->next;
+            term->next = result;
+            result = term;
+        } else {
+            double sum = current1->coefficient + current2->coefficient;
+            if (sum != 0) {
+                Term* term = createTerm(sum, current1->exponent);
+                term->next = result;
+                result = term;
+            }
+            current1 = current1->next;
+            current2 = current2->next;
+        }
+    }
+
+    return result;
+}
+
+Term* multiplyPolynomials(Term* poly1, Term* poly2) {
+    Term* result = NULL;
+    Term* current1 = poly1;
+
+    while (current1 != NULL) {
+        Term* current2 = poly2;
+
+        while (current2 != NULL) {
+            double coefficient = current1->coefficient * current2->coefficient;
+            int exponent = current1->exponent + current2->exponent;
+            Term* term = createTerm(coefficient, exponent);
+
+
+            result = addPolynomials(result, term);
+
+            current2 = current2->next;
+        }
+
+        current1 = current1->next;
+    }
+
+    return result;
+}
+
+void freePolynomial(Term* polynomial) {
+    while (polynomial != NULL) {
+        Term* temp = polynomial;
+        polynomial = polynomial->next;
+        free(temp);
+    }
+}
+
+int main() {
+    Term* poly1 = readPolynomialFromFile("polynomial1.txt");
+    Term* poly2 = readPolynomialFromFile("polynomial2.txt");
+
+    printf("Polynomial 1: ");
+    printPolynomial(poly1);
+    printf("Polynomial 2: ");
+    printPolynomial(poly2);
+
+    Term* sum = addPolynomials(poly1, poly2);
+    Term* product = multiplyPolynomials(poly1, poly2);
+
+    printf("Sum of polynomials: ");
+    printPolynomial(sum);
+    printf("Product of polynomials: ");
+    printPolynomial(product);
+
+    freePolynomial(poly1);
+    freePolynomial(poly2);
+    freePolynomial(sum);
+    freePolynomial(product);
+
+    return 0;
+}
