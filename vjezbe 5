@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+void push(Node** top, int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    if (newNode == NULL) {
+        fprintf(stderr, "Greška pri alokaciji memorije.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->next = *top;
+    *top = newNode;
+}
+
+// Funkcija za uklanjanje elementa s vrha stoga
+int pop(Node** top) {
+    if (*top == NULL) {
+        fprintf(stderr, "Stog je prazan.\n");
+        exit(EXIT_FAILURE);
+    }
+    int data = (*top)->data;
+    Node* temp = *top;
+    *top = (*top)->next;
+    free(temp);
+    return data;
+}
+
+// Funkcija za izračunavanje rezultata postfiksnog izraza
+int evaluatePostfix(char* expression) {
+    Node* stack = NULL;
+
+    for (int i = 0; expression[i] != '\0'; ++i) {
+        if (isdigit(expression[i])) {
+            push(&stack, expression[i] - '0');  // Pretvori znak u broj
+        } else {
+            int operand2 = pop(&stack);
+            int operand1 = pop(&stack);
+
+            switch (expression[i]) {
+                case '+':
+                    push(&stack, operand1 + operand2);
+                    break;
+                case '-':
+                    push(&stack, operand1 - operand2);
+                    break;
+                case '*':
+                    push(&stack, operand1 * operand2);
+                    break;
+                case '/':
+                    push(&stack, operand1 / operand2);
+                    break;
+                default:
+                    fprintf(stderr, "Nepodržana operacija: %c\n", expression[i]);
+                    exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    return pop(&stack);
+}
+
+int main() {
+    FILE* file = fopen("postfix.txt", "r");
+    if (file == NULL) {
+        fprintf(stderr, "Greška pri otvaranju datoteke.\n");
+        return EXIT_FAILURE;
+    }
+
+    // Čitanje postfiksnog izraza iz datoteke
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    rewind(file);
+    char* expression = (char*)malloc(size + 1);
+    fread(expression, 1, size, file);
+    expression[size] = '\0';
+
+    // Izračunavanje rezultata
+    int result = evaluatePostfix(expression);
+    printf("Rezultat postfiksnog izraza: %d\n", result);
+
+    // Oslobađanje memorije
+    free(expression);
+    fclose(file);
+
+    return 0;
+}
