@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Directory {
+    char name[50];
+    struct Directory *subdirectories;
+    struct Directory *next;
+};
+
+struct Directory *currentDir = NULL;
+
+void createDirectory(char name[]) {
+    struct Directory *newDir = (struct Directory *)malloc(sizeof(struct Directory));
+    strcpy(newDir->name, name);
+    newDir->subdirectories = NULL;
+    newDir->next = NULL;
+
+    if (currentDir == NULL) {
+        currentDir = newDir;
+    } else {
+        newDir->next = currentDir->subdirectories;
+        currentDir->subdirectories = newDir;
+    }
+}
+
+void changeDirectory(char name[]) {
+    struct Directory *temp = currentDir->subdirectories;
+    while (temp != NULL) {
+        if (strcmp(temp->name, name) == 0) {
+            currentDir = temp;
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Directory '%s' not found.\n", name);
+}
+
+void listDirectories() {
+    struct Directory *temp = currentDir->subdirectories;
+    printf("Directories in %s:\n", currentDir->name);
+    while (temp != NULL) {
+        printf("%s\n", temp->name);
+        temp = temp->next;
+    }
+}
+
+void moveUpDirectory() {
+    if (currentDir != NULL) {
+        currentDir = currentDir->next;
+    }
+}
+
+int main() {
+    int choice;
+    char name[50];
+
+    while (1) {
+        printf("\nMenu:\n");
+        printf("1. Create Directory (md)\n");
+        printf("2. Change Directory (cd dir)\n");
+        printf("3. Move Up Directory (cd..)\n");
+        printf("4. List Directories (dir)\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter directory name to create: ");
+                scanf("%s", name);
+                createDirectory(name);
+                break;
+            case 2:
+                printf("Enter directory name to change to: ");
+                scanf("%s", name);
+                changeDirectory(name);
+                break;
+            case 3:
+                moveUpDirectory();
+                break;
+            case 4:
+                listDirectories();
+                break;
+            case 5:
+                printf("Exiting...\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+
+    return 0;
+}
