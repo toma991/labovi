@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Struktura čvora binarnog stabla
+struct Node {
+    int key;
+    struct Node *left, *right;
+};
+
+// Funkcija za stvaranje novog čvora
+struct Node* createNode(int key) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->key = key;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+
+// Funkcija za umetanje čvora u binarno stablo
+struct Node* insertNode(struct Node* root, int key) {
+    if (root == NULL) {
+        return createNode(key);
+    }
+
+    if (key < root->key) {
+        root->left = insertNode(root->left, key);
+    } else if (key > root->key) {
+        root->right = insertNode(root->right, key);
+    }
+
+    return root;
+}
+
+// Funkcija za ispis elemenata inorder (lijevo, korijen, desno)
+void inorderTraversal(struct Node* root) {
+    if (root != NULL) {
+        inorderTraversal(root->left);
+        printf("%d ", root->key);
+        inorderTraversal(root->right);
+    }
+}
+
+// Funkcija za ispis elemenata preorder (korijen, lijevo, desno)
+void preorderTraversal(struct Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->key);
+        preorderTraversal(root->left);
+        preorderTraversal(root->right);
+    }
+}
+
+// Funkcija za ispis elemenata postorder (lijevo, desno, korijen)
+void postorderTraversal(struct Node* root) {
+    if (root != NULL) {
+        postorderTraversal(root->left);
+        postorderTraversal(root->right);
+        printf("%d ", root->key);
+    }
+}
+
+// Funkcija za brisanje čvora s određenim ključem iz stabla
+struct Node* deleteNode(struct Node* root, int key) {
+    if (root == NULL) {
+        return root;
+    }
+
+    if (key < root->key) {
+        root->left = deleteNode(root->left, key);
+    } else if (key > root->key) {
+        root->right = deleteNode(root->right, key);
+    } else {
+        if (root->left == NULL) {
+            struct Node* temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            struct Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        struct Node* temp = root->right;
+        while (temp->left != NULL) {
+            temp = temp->left;
+        }
+
+        root->key = temp->key;
+        root->right = deleteNode(root->right, temp->key);
+    }
+    return root;
+}
+
+// Funkcija za pronalaženje čvora s određenim ključem
+struct Node* search(struct Node* root, int key) {
+    if (root == NULL || root->key == key) {
+        return root;
+    }
+
+    if (key < root->key) {
+        return search(root->left, key);
+    }
+
+    return search(root->right, key);
+}
+
+int main() {
+    struct Node* root = NULL;
+    int choice, key;
+
+    do {
+        printf("\nOdaberite opciju:\n");
+        printf("1. Dodaj element u stablo\n");
+        printf("2. Ispiši elemente inorder\n");
+        printf("3. Ispiši elemente preorder\n");
+        printf("4. Ispiši elemente postorder\n");
+        printf("5. Ispiši elemente level order\n");
+        printf("6. Obriši element\n");
+        printf("7. Pronađi element\n");
+        printf("8. Izlaz\n");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Unesite vrijednost elementa: ");
+                scanf("%d", &key);
+                root = insertNode(root, key);
+                break;
+            case 2:
+                printf("Inorder ispis: ");
+                inorderTraversal(root);
+                printf("\n");
+                break;
+            case 3:
+                printf("Preorder ispis: ");
+                preorderTraversal(root);
+                printf("\n");
+                break;
+            case 4:
+                printf("Postorder ispis: ");
+                postorderTraversal(root);
+                printf("\n");
+                break;
+            case 6:
+                printf("Unesite vrijednost elementa za brisanje: ");
+                scanf("%d", &key);
+                root = deleteNode(root, key);
+                break;
+            case 7:
+                printf("Unesite vrijednost elementa za pretragu: ");
+                scanf("%d", &key);
+                if (search(root, key) != NULL) {
+                    printf("Element pronađen.\n");
+                } else {
+                    printf("Element nije pronađen.\n");
+                }
+                break;
+            case 8:
+                printf("Izlaz iz programa.\n");
+                break;
+            default:
+                printf("Pogrešan unos. Molimo odaberite ponovo.\n");
+        }
+    } while (choice != 8);
+
+    return 0;
+}
