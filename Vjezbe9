@@ -1,0 +1,87 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definicija strukture za čvor binarnog stabla
+typedef struct TreeNode {
+    int data;
+    struct TreeNode* left;
+    struct TreeNode* right;
+} TreeNode;
+
+// Funkcija za dodavanje elementa u binarno stablo
+TreeNode* insert(TreeNode* root, int value) {
+    if (root == NULL) {
+        TreeNode* newNode = (TreeNode*)malloc(sizeof(TreeNode));
+        newNode->data = value;
+        newNode->left = newNode->right = NULL;
+        return newNode;
+    }
+
+    if (value < root->data) {
+        root->left = insert(root->left, value);
+    } else {
+        root->right = insert(root->right, value);
+    }
+
+    return root;
+}
+
+// Funkcija za zamjenu svakog elementa sumom elemenata u njegovom lijevom i desnom podstablu
+void replace(TreeNode* root) {
+    if (root == NULL) {
+        return;
+    }
+
+    replace(root->left);
+    replace(root->right);
+
+    int leftSum = (root->left != NULL) ? root->left->data : 0;
+    int rightSum = (root->right != NULL) ? root->right->data : 0;
+
+    root->data += leftSum + rightSum;
+}
+
+// Funkcija za ispisivanje brojeva u inorder prolasku u datoteku
+void inorderToFile(TreeNode* root, FILE* file) {
+    if (root != NULL) {
+        inorderToFile(root->left, file);
+        fprintf(file, "%d ", root->data);
+        inorderToFile(root->right, file);
+    }
+}
+
+int main() {
+    // Inicijalizacija praznog stabla
+    TreeNode* root = NULL;
+
+    // Dodavanje elemenata iz niza u stablo
+    int arr[] = {2, 5, 7, 8, 11, 1, 4, 2, 3, 7};
+    int n = sizeof(arr) / sizeof(arr[0]);
+
+    for (int i = 0; i < n; i++) {
+        root = insert(root, arr[i]);
+    }
+
+    // Zamjena elemenata sumom podstabala
+    replace(root);
+
+    // Otvaranje datoteke za pisanje
+    FILE* file = fopen("output.txt", "w");
+    if (file == NULL) {
+        printf("Ne mogu otvoriti datoteku za pisanje.");
+        return 1;
+    }
+
+    // Ispisivanje brojeva u inorder prolasku u datoteku
+    inorderToFile(root, file);
+
+    // Zatvaranje datoteke
+    fclose(file);
+
+    // Oslobađanje memorije zauzete za stablo
+    // Ovo bi trebalo izvesti nakon što završite s korištenjem stabla
+    // u vašem stvarnom programu kako biste izbjegli curenje memorije
+    // Oslobađanje memorije može se izvesti rekurzivno ili korištenjem stoga.
+
+    return 0;
+}
