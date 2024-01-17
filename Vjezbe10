@@ -1,0 +1,124 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Struktura za grad
+typedef struct {
+    char naziv[50];
+    int broj_stanovnika;
+} Grad;
+
+// Struktura za čvor vezane liste gradova
+typedef struct GradNode {
+    Grad grad;
+    struct GradNode* next;
+} GradNode;
+
+// Struktura za državu koja sadrži vezanu listu gradova
+typedef struct {
+    char naziv[50];
+    GradNode* gradovi;
+} Drzava;
+
+// Funkcija za dodavanje grada u vezanu listu gradova
+void dodajGrad(GradNode** head, Grad grad) {
+    GradNode* noviGradNode = (GradNode*)malloc(sizeof(GradNode));
+    noviGradNode->grad = grad;
+    noviGradNode->next = NULL;
+
+    if (*head == NULL || strcmp(grad.naziv, (*head)->grad.naziv) < 0) {
+        noviGradNode->next = *head;
+        *head = noviGradNode;
+    } else {
+        GradNode* trenutni = *head;
+        while (trenutni->next != NULL && strcmp(grad.naziv, trenutni->next->grad.naziv) > 0) {
+            trenutni = trenutni->next;
+        }
+        noviGradNode->next = trenutni->next;
+        trenutni->next = noviGradNode;
+    }
+}
+
+// Funkcija za ispis gradova u vezanoj listi
+void ispisiGradove(GradNode* head) {
+    GradNode* trenutni = head;
+    while (trenutni != NULL) {
+        printf("%s, %d stanovnika\n", trenutni->grad.naziv, trenutni->grad.broj_stanovnika);
+        trenutni = trenutni->next;
+    }
+}
+
+// Funkcija za dodavanje države u polje država
+void dodajDrzavu(Drzava* drzave, int* brojDrzava, char* nazivDrzave) {
+    strcpy(drzave[*brojDrzava].naziv, nazivDrzave);
+    drzave[*brojDrzava].gradovi = NULL;
+    (*brojDrzava)++;
+}
+
+int main() {
+    FILE* file = fopen("drzave.txt", "r");
+    if (file == NULL) {
+        printf("Nemoguce otvoriti datoteku drzave.txt\n");
+        return 1;
+    }
+
+    // Broj država
+    int brojDrzava = 0;
+
+    // Inicijalizacija polja država
+    Drzava drzave[100];
+
+    // Čitanje datoteke drzave.txt
+    while (!feof(file)) {
+        char nazivDrzave[50];
+        fscanf(file, "%s", nazivDrzave);
+        dodajDrzavu(drzave, &brojDrzava, nazivDrzave);
+
+        char nazivDatoteke[50];
+        fscanf(file, "%s", nazivDatoteke);
+
+        // Otvaranje datoteke sa gradovima
+        FILE* gradFile = fopen(nazivDatoteke, "r");
+        if (gradFile == NULL) {
+            printf("Nemoguce otvoriti datoteku %s\n", nazivDatoteke);
+            return 1;
+        }
+
+        // Čitanje gradova i dodavanje u vezanu listu gradova za trenutnu državu
+        while (!feof(gradFile)) {
+            Grad grad;
+            fscanf(gradFile, "%s %d", grad.naziv, &grad.broj_stanovnika);
+            dodajGrad(&(drzave[brojDrzava - 1].gradovi), grad);
+        }
+
+        fclose(gradFile);
+    }
+
+    fclose(file);
+
+    // Ispis država i gradova
+    for (int i = 0; i < brojDrzava; i++) {
+        printf("Drzava: %s\n", drzave[i].naziv);
+        printf("Gradovi:\n");
+        ispisiGradove(drzave[i].gradovi);
+        printf("\n");
+    }
+
+    // Pretraga gradova s brojem stanovnika većim od unosa
+    int unos;
+    printf("Unesite broj stanovnika za pretragu: ");
+    scanf("%d", &unos);
+
+    printf("\nGradovi s brojem stanovnika vecim od %d:\n", unos);
+    for (int i = 0; i < brojDrzava; i++) {
+        GradNode* trenutni = drzave[i].gradovi;
+        while (trenutni != NULL) {
+            if (trenutni->grad.broj_stanovnika > unos) {
+                printf("%s, %d stanovnika\n", trenutni->grad.naziv, trenutni->grad.broj_stanovnika);
+            }
+            trenutni = trenutni->next;
+        }
+    }
+
+    return 0;
+}
